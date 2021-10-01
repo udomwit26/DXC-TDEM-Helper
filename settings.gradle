@@ -1,0 +1,3 @@
+rootProject.name = 'DXC-TDEM-Helper'
+include 'Database-Structure'
+

@@ -1,0 +1,14 @@
+plugins {
+    id 'java'
+}
+
+group 'com.dxc.application'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://159.89.210.222:8085/repository/maven-public/"
+        allowInsecureProtocol true
+    }
+}
