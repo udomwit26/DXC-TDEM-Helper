@@ -3,5 +3,9 @@ spring:
     url: jdbc:mysql://159.89.210.222:3306/lce?useSSL=false&serverTimezone=UTC
     username: lce
     password: lce
-dbstructure:
+db:
+  brand: MYSQL
   schema: lce
+output:
+  path: /
+  fileName: 01_Database_Structure.xlsx
