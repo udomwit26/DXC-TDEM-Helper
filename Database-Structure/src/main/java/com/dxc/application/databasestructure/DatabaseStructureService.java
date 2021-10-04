@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,12 +58,20 @@ public class DatabaseStructureService {
 
     @SneakyThrows
     private void createTableSheet(final Workbook wb, final List<TableModel> tableList) {
+        CreationHelper createHelper = wb.getCreationHelper();
+        Hyperlink link = null;
         int additionalSheet = 1;
         for (TableModel table : tableList) {
             Sheet dbSheet = wb.cloneSheet(2);
             wb.setSheetName(2 + additionalSheet, generateSheetName(table.getPhysicalTableName()));
             dbSheet.getRow(5).getCell(40).setCellValue(table.getPhysicalTableName());
             dbSheet.getRow(6).getCell(7).setCellValue(table.getLogicalTableName());
+
+            // link
+            link = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
+            link.setAddress("'Table List'!M3");
+            dbSheet.getRow(6).getCell(7).setHyperlink(link);
+
             setDbSheetInfo(dbSheet, table.getPhysicalTableName());
             additionalSheet++;
         }
@@ -78,8 +87,12 @@ public class DatabaseStructureService {
             dbSheet.getRow(startRow).getCell(38).setCellValue(column.getDataType());
             dbSheet.getRow(startRow).getCell(44).setCellValue(column.getLen());
             dbSheet.getRow(startRow).getCell(48).setCellValue(column.getPrec());
-            dbSheet.getRow(startRow).getCell(52).setCellValue(column.getPkSeq());
-            dbSheet.getRow(startRow).getCell(55).setCellValue(column.getMandatory());
+            if(StringUtils.isNotBlank(column.getPkSeq())){
+                dbSheet.getRow(startRow).getCell(52).setCellValue(column.getPkSeq());
+            }
+            if(StringUtils.isNotBlank(column.getMandatory())){
+                dbSheet.getRow(startRow).getCell(55).setCellValue(column.getMandatory());
+            }
             startRow++;
         }
         if (startRow < 17) {
@@ -104,11 +117,21 @@ public class DatabaseStructureService {
 
     @SneakyThrows
     private List<TableModel> createTableListSheet(final Workbook wb, final List<TableModel> tableList) {
+        CreationHelper createHelper = wb.getCreationHelper();
+        Hyperlink link = null;
         Sheet tabListSheet = wb.getSheet("Table List");
         int startRow = 5;
         for (TableModel table : tableList) {
             tabListSheet.getRow(startRow).getCell(3).setCellValue(table.getLogicalTableName());
             tabListSheet.getRow(startRow).getCell(21).setCellValue(table.getPhysicalTableName());
+            tabListSheet.getRow(startRow).getCell(39).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!BP6");
+            tabListSheet.getRow(startRow).getCell(46).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!CF6");
+
+            // link
+            link = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
+            link.setAddress(generateSheetName(table.getPhysicalTableName())+"!H7");
+            tabListSheet.getRow(startRow).getCell(3).setHyperlink(link);
+
             startRow++;
         }
         for(int ii= 204;ii>startRow;ii--){
@@ -116,6 +139,8 @@ public class DatabaseStructureService {
         }
         return tableList;
     }
+
+
 
     @SneakyThrows
     private void evaluateFormulaCell(Workbook wb) {
