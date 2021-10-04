@@ -15,6 +15,10 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven {
+        url "http://159.89.210.222:8085/repository/maven-public/"
+        allowInsecureProtocol true
+    }
 }
 
 dependencies {
@@ -24,8 +28,8 @@ dependencies {
     implementation("com.google.guava:guava:31.0.1-jre")
     implementation 'org.apache.poi:poi:5.0.0'
     implementation 'org.apache.poi:poi-ooxml:5.0.0'
-//    implementation 'org.apache.poi:poi-ooxml-schemas:4.1.2'
     runtimeOnly 'mysql:mysql-connector-java:8.0.26'
+    runtimeOnly 'oracle:ojdbc6:11.2.0.2.0'
 
     compileOnly 'org.projectlombok:lombok:1.18.20'
     annotationProcessor 'org.projectlombok:lombok:1.18.20'

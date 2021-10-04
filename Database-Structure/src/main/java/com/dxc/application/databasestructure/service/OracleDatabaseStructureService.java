@@ -1,4 +1,4 @@
-package com.dxc.application.databasestructure;
+package com.dxc.application.databasestructure.service;
 
 import com.dxc.application.databasestructure.data.db.DatabaseStructure;
 import com.dxc.application.databasestructure.model.DatabaseStructureModel;
@@ -22,7 +22,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class DatabaseStructureService {
+public class OracleDatabaseStructureService implements DatabaseStructureService{
     private final DatabaseStructure databaseStructure;
     private final ResourceLoader resourceLoader;
 
@@ -37,6 +37,7 @@ public class DatabaseStructureService {
     private String schemaName;
 
     @SneakyThrows
+    @Override
     public void createExcel() {
         String templateFileName = dbBrand + "_Database_Structure.xlsx";
         File templateFile = resourceLoader.getResource("classpath:template/" + templateFileName).getFile();
@@ -62,7 +63,7 @@ public class DatabaseStructureService {
         Hyperlink link = null;
         int additionalSheet = 1;
         for (TableModel table : tableList) {
-            Sheet dbSheet = wb.cloneSheet(2);
+            Sheet dbSheet = wb.cloneSheet(3);
             wb.setSheetName(2 + additionalSheet, generateSheetName(table.getPhysicalTableName()));
             dbSheet.getRow(5).getCell(40).setCellValue(table.getPhysicalTableName());
             dbSheet.getRow(6).getCell(7).setCellValue(table.getLogicalTableName());
