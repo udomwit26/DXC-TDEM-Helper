@@ -41,9 +41,7 @@ public class OracleDatabaseStructure {
         }
         resultSet.close();
         con.close();
-        return tableList.stream().filter(
-                tableName -> tableName.getPhysicalTableName().startsWith("TB_")
-        ).collect(Collectors.toList());
+        return tableList;
     }
 
 

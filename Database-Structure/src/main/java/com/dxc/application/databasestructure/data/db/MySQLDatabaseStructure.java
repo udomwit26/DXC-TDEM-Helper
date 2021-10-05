@@ -40,7 +40,7 @@ public class MySQLDatabaseStructure {
         resultSet.close();
         con.close();
         return tableList.stream().filter(
-                tableName -> tableName.getPhysicalTableName().startsWith("TB_") && !tableName.getPhysicalTableName().startsWith("TB_T")
+                tableName -> tableName.getPhysicalTableName().startsWith("TB_")
         ).collect(Collectors.toList());
     }
 

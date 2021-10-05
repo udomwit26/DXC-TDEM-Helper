@@ -130,7 +130,7 @@ public class OracleDatabaseStructureService implements DatabaseStructureService 
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         }
-        dbSheet.getWorkbook().setPrintArea(sheetIndex, 0, 102, 0, startRow);
+        dbSheet.getWorkbook().setPrintArea(sheetIndex, 0, 102, 0, startRow<15?15:startRow);
         dbSheet.setDisplayGridlines(false);
     }
 
