@@ -12,12 +12,14 @@ import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 @Service
@@ -41,16 +43,15 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
     @Override
     public void createExcel() {
         String templateFileName = dbBrand + "_Database_Structure.xlsx";
-        File templateFile = resourceLoader.getResource("classpath:template/" + templateFileName).getFile();
         String tempOutFileName = outputFolder + outputFileName;
         File outFile = new File(tempOutFileName);
 
-        try (FileInputStream fis = new FileInputStream(templateFile);
+        try (InputStream fis = new ClassPathResource("template/" + templateFileName).getInputStream();
              FileOutputStream fos = new FileOutputStream(outFile);
+             Workbook wb = new XSSFWorkbook(fis);
         ) {
             List<TableModel> tableList = databaseStructure.listAllTables(schemaName);
             List<SequenceModel> sequenceList = databaseStructure.listSequenceMetaData();
-            Workbook wb = new XSSFWorkbook(fis);
             createTableSheet(wb, tableList);
             createTableListSheet(wb, tableList);
             createSequenceSheet(wb, sequenceList);

@@ -42,7 +42,7 @@ public class OracleDatabaseStructure {
         resultSet.close();
         con.close();
         return tableList.stream().filter(
-                tableName -> tableName.getPhysicalTableName().startsWith("TB_") && !tableName.getPhysicalTableName().startsWith("TB_T")
+                tableName -> tableName.getPhysicalTableName().startsWith("TB_")
         ).collect(Collectors.toList());
     }
 
@@ -72,16 +72,17 @@ public class OracleDatabaseStructure {
         con.close();
         return columnList;
     }
+
     @SneakyThrows
-    public List<SequenceModel> listSequenceMetaData(){
+    public List<SequenceModel> listSequenceMetaData() {
         List<SequenceModel> sequenceList = new ArrayList<>();
-        try(
+        try (
                 Connection con = ds.getConnection();
                 PreparedStatement stmt = con.prepareStatement("SELECT SEQUENCE_NAME,MIN_VALUE,MAX_VALUE,LAST_NUMBER,INCREMENT_BY,CYCLE_FLAG FROM USER_SEQUENCES");
-        ){
+        ) {
             ResultSet sqRs = stmt.executeQuery();
             SequenceModel model = null;
-            while (sqRs.next()){
+            while (sqRs.next()) {
                 model = new SequenceModel();
                 model.setSequenceName(sqRs.getString("SEQUENCE_NAME"));
                 model.setMinValue(sqRs.getBigDecimal("MIN_VALUE"));
@@ -93,11 +94,11 @@ public class OracleDatabaseStructure {
             }
             sqRs.close();
         }
-        return  sequenceList;
+        return sequenceList;
     }
 
     private boolean checkNullable(Integer pkSeq, String isNullable) {
-        return pkSeq!=null || StringUtils.equalsIgnoreCase(isNullable, "YES");
+        return pkSeq != null || StringUtils.equalsIgnoreCase(isNullable, "YES");
     }
 
     @SneakyThrows

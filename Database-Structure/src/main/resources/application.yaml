@@ -8,12 +8,12 @@
 #  schema: lce
 spring:
   datasource:
-    url: jdbc:oracle:thin:@159.89.210.222:8521:XE
-    username: DXCDEMOAPP
-    password: dxcdemoapp
+    url: jdbc:oracle:thin:@10.254.7.53:8521:LT0DEV
+    username: LT0USER01
+    password: lt0user01twa
 db:
   brand: ORACLE
-  schema: DXCDEMOAPP
+  schema: LT0USER01
 output:
   path: /
   fileName: 01_Database_Structure.xlsx
