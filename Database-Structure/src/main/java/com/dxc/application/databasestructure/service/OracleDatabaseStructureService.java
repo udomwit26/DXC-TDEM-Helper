@@ -1,7 +1,8 @@
 package com.dxc.application.databasestructure.service;
 
-import com.dxc.application.databasestructure.data.db.DatabaseStructure;
+import com.dxc.application.databasestructure.data.db.OracleDatabaseStructure;
 import com.dxc.application.databasestructure.model.DatabaseStructureModel;
+import com.dxc.application.databasestructure.model.SequenceModel;
 import com.dxc.application.databasestructure.model.TableModel;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -23,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class OracleDatabaseStructureService implements DatabaseStructureService{
-    private final DatabaseStructure databaseStructure;
+    private final OracleDatabaseStructure databaseStructure;
     private final ResourceLoader resourceLoader;
 
     @Value("${output.path}")
@@ -48,12 +49,31 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
              FileOutputStream fos = new FileOutputStream(outFile);
         ) {
             List<TableModel> tableList = databaseStructure.listAllTables(schemaName);
+            List<SequenceModel> sequenceList = databaseStructure.listSequenceMetaData();
             Workbook wb = new XSSFWorkbook(fis);
             createTableSheet(wb, tableList);
             createTableListSheet(wb, tableList);
-            wb.removeSheetAt(2);
+            createSequenceSheet(wb, sequenceList);
+            wb.removeSheetAt(3);
             evaluateFormulaCell(wb);
             wb.write(fos);
+        }
+    }
+    @SneakyThrows
+    private void createSequenceSheet(Workbook wb, final List<SequenceModel> sequenceList) {
+        int startRow = 9;
+        Sheet sequenceListSheet = wb.getSheetAt(1);
+        for (SequenceModel model : sequenceList) {
+            sequenceListSheet.getRow(startRow).getCell(1).setCellValue(model.getSequenceName());
+            sequenceListSheet.getRow(startRow).getCell(18).setCellValue(model.getMinValue().intValue());
+            sequenceListSheet.getRow(startRow).getCell(25).setCellValue(model.getMaxValue().intValue());
+            sequenceListSheet.getRow(startRow).getCell(37).setCellValue(model.getLastNumber().intValue());
+            sequenceListSheet.getRow(startRow).getCell(42).setCellValue(model.getIncrementBy().intValue());
+            sequenceListSheet.getRow(startRow).getCell(50).setCellValue(model.getCycleFlag());
+            startRow++;
+        }
+        for(int ii= 214;ii>startRow;ii--){
+            sequenceListSheet.removeRow(sequenceListSheet.getRow(ii));
         }
     }
 
@@ -64,13 +84,13 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
         int additionalSheet = 1;
         for (TableModel table : tableList) {
             Sheet dbSheet = wb.cloneSheet(3);
-            wb.setSheetName(2 + additionalSheet, generateSheetName(table.getPhysicalTableName()));
+            wb.setSheetName(3 + additionalSheet, generateSheetName(table.getPhysicalTableName()));
             dbSheet.getRow(5).getCell(40).setCellValue(table.getPhysicalTableName());
             dbSheet.getRow(6).getCell(7).setCellValue(table.getLogicalTableName());
 
             // link
             link = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
-            link.setAddress("'Table List'!M3");
+            link.setAddress("'Table List'!N3");
             dbSheet.getRow(6).getCell(7).setHyperlink(link);
 
             setDbSheetInfo(dbSheet, table.getPhysicalTableName());
@@ -86,9 +106,9 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
             dbSheet.getRow(startRow).getCell(4).setCellValue(column.getColumnName());
             dbSheet.getRow(startRow).getCell(21).setCellValue(column.getLogicalName());
             dbSheet.getRow(startRow).getCell(38).setCellValue(column.getDataType());
-            dbSheet.getRow(startRow).getCell(44).setCellValue(column.getLen());
-            dbSheet.getRow(startRow).getCell(48).setCellValue(column.getPrec());
-            if(StringUtils.isNotBlank(column.getPkSeq())){
+            generateLenValue(dbSheet.getRow(startRow).getCell(44),column.getDataType(),column.getLen());
+            generatePrecValue(dbSheet.getRow(startRow).getCell(48),column.getDataType(),column.getPrec());
+            if(column.getPkSeq()!=null){
                 dbSheet.getRow(startRow).getCell(52).setCellValue(column.getPkSeq());
             }
             if(StringUtils.isNotBlank(column.getMandatory())){
@@ -96,12 +116,12 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
             }
             startRow++;
         }
-        if (startRow < 17) {
-            for(int ii= 209;ii>17;ii--){
+        if (startRow < 15) {
+            for(int ii= 210;ii>15;ii--){
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         } else {
-            for(int ii= 209;ii>startRow;ii--){
+            for(int ii= 210;ii>startRow;ii--){
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         }
@@ -117,28 +137,26 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
     }
 
     @SneakyThrows
-    private List<TableModel> createTableListSheet(final Workbook wb, final List<TableModel> tableList) {
+    private void createTableListSheet(final Workbook wb, final List<TableModel> tableList) {
         CreationHelper createHelper = wb.getCreationHelper();
         Hyperlink link = null;
-        Sheet tabListSheet = wb.getSheet("Table List");
+        Sheet tabListSheet = wb.getSheetAt(2);
         int startRow = 5;
         for (TableModel table : tableList) {
-            tabListSheet.getRow(startRow).getCell(3).setCellValue(table.getLogicalTableName());
-            tabListSheet.getRow(startRow).getCell(21).setCellValue(table.getPhysicalTableName());
-            tabListSheet.getRow(startRow).getCell(39).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!BP6");
-            tabListSheet.getRow(startRow).getCell(46).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!CF6");
+            tabListSheet.getRow(startRow).getCell(4).setCellValue(table.getLogicalTableName());
+            tabListSheet.getRow(startRow).getCell(22).setCellValue(table.getPhysicalTableName());
+            tabListSheet.getRow(startRow).getCell(40).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!BP6");
+            tabListSheet.getRow(startRow).getCell(47).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!CF6");
 
-            // link
             link = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
             link.setAddress(generateSheetName(table.getPhysicalTableName())+"!H7");
-            tabListSheet.getRow(startRow).getCell(3).setHyperlink(link);
+            tabListSheet.getRow(startRow).getCell(4).setHyperlink(link);
 
             startRow++;
         }
-        for(int ii= 204;ii>startRow;ii--){
+        for(int ii= 211;ii>startRow;ii--){
             tabListSheet.removeRow(tabListSheet.getRow(ii));
         }
-        return tableList;
     }
 
 
@@ -154,6 +172,24 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
                     }
                 }
             }
+        }
+    }
+
+    @SneakyThrows
+    private void generatePrecValue(Cell cell, String dataType, Integer precValue) {
+        if (StringUtils.equalsIgnoreCase(dataType, "NUMBER")) {
+            cell.setCellValue(precValue);
+        }
+    }
+
+    @SneakyThrows
+    private void generateLenValue(Cell cell, String dataType, Integer lenValue) {
+        if (StringUtils.equalsIgnoreCase(dataType, "NUMBER")
+                || StringUtils.equalsIgnoreCase(dataType, "CHAR")
+                || StringUtils.equalsIgnoreCase(dataType, "VARCHAR2")
+                || StringUtils.equalsIgnoreCase(dataType, "NCHAR")
+                || StringUtils.equalsIgnoreCase(dataType, "NVARCHAR2")) {
+            cell.setCellValue(lenValue);
         }
     }
 }

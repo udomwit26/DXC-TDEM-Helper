@@ -1,6 +1,6 @@
 package com.dxc.application.databasestructure.service;
 
-import com.dxc.application.databasestructure.data.db.DatabaseStructure;
+import com.dxc.application.databasestructure.data.db.MySQLDatabaseStructure;
 import com.dxc.application.databasestructure.model.DatabaseStructureModel;
 import com.dxc.application.databasestructure.model.TableModel;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class MySqlDatabaseStructureService implements DatabaseStructureService {
-    private final DatabaseStructure databaseStructure;
+    private final MySQLDatabaseStructure databaseStructure;
 
     @Value("${output.path}")
     private String outputFolder;
@@ -84,9 +84,9 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
             dbSheet.getRow(startRow).getCell(4).setCellValue(column.getColumnName());
             dbSheet.getRow(startRow).getCell(21).setCellValue(column.getLogicalName());
             dbSheet.getRow(startRow).getCell(38).setCellValue(column.getDataType());
-            dbSheet.getRow(startRow).getCell(44).setCellValue(column.getLen());
-            dbSheet.getRow(startRow).getCell(48).setCellValue(column.getPrec());
-            if (StringUtils.isNotBlank(column.getPkSeq())) {
+            generateLenValue(dbSheet.getRow(startRow).getCell(44), column.getDataType(), column.getLen());
+            generatePrecValue(dbSheet.getRow(startRow).getCell(48), column.getDataType(), column.getPrec());
+            if (column.getPkSeq() != null) {
                 dbSheet.getRow(startRow).getCell(52).setCellValue(column.getPkSeq());
             }
             if (StringUtils.isNotBlank(column.getMandatory())) {
@@ -115,7 +115,7 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
     }
 
     @SneakyThrows
-    private List<TableModel> createTableListSheet(final Workbook wb, final List<TableModel> tableList) {
+    private void createTableListSheet(final Workbook wb, final List<TableModel> tableList) {
         CreationHelper createHelper = wb.getCreationHelper();
         Hyperlink link = null;
         Sheet tabListSheet = wb.getSheet("Table List");
@@ -136,7 +136,6 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
         for (int ii = 204; ii > startRow; ii--) {
             tabListSheet.removeRow(tabListSheet.getRow(ii));
         }
-        return tableList;
     }
 
 
@@ -151,6 +150,23 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
                     }
                 }
             }
+        }
+    }
+
+    @SneakyThrows
+    private void generatePrecValue(Cell cell, String dataType, Integer precValue) {
+        if (StringUtils.equalsIgnoreCase(dataType, "DECIMAL")) {
+            cell.setCellValue(precValue);
+        }
+    }
+
+    @SneakyThrows
+    private void generateLenValue(Cell cell, String dataType, Integer lenValue) {
+        if (StringUtils.equalsIgnoreCase(dataType, "DECIMAL")
+                || StringUtils.equalsIgnoreCase(dataType, "CHAR")
+                || StringUtils.equalsIgnoreCase(dataType, "VARCHAR")
+                || StringUtils.equalsIgnoreCase(dataType, "LONGBLOB")) {
+            cell.setCellValue(lenValue);
         }
     }
 }

@@ -7,8 +7,8 @@ public class DatabaseStructureModel {
     private String columnName;
     private String LogicalName;
     private String dataType;
-    private String len;
-    private String prec;
-    private String pkSeq;
+    private Integer len;
+    private Integer prec;
+    private Integer pkSeq;
     private String mandatory;
 }

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class DatabaseStructure {
+public class MySQLDatabaseStructure {
     private final DataSource ds;
 
     @SneakyThrows
@@ -60,8 +60,8 @@ public class DatabaseStructure {
             columnMeta.setColumnName(columnName);
             columnMeta.setLogicalName(makeColumnLogicalName(columnName));
             columnMeta.setDataType(columns.getString("TYPE_NAME"));
-            columnMeta.setLen(columns.getString("COLUMN_SIZE"));
-            columnMeta.setPrec(columns.getString("DECIMAL_DIGITS"));
+            columnMeta.setLen(columns.getInt("COLUMN_SIZE"));
+            columnMeta.setPrec(columns.getInt("DECIMAL_DIGITS"));
             columnMeta.setPkSeq(chekAndReturnPKSeq(pkList, columnName));
             columnMeta.setMandatory(checkNullable(columnMeta.getPkSeq(), columns.getString("IS_NULLABLE")) ? "x" : "");
             columnList.add(columnMeta);
@@ -71,8 +71,8 @@ public class DatabaseStructure {
         return columnList;
     }
 
-    private boolean checkNullable(String pkSeq, String isNullable) {
-        return StringUtils.isNotBlank(pkSeq) || StringUtils.equalsIgnoreCase(isNullable, "YES");
+    private boolean checkNullable(Integer pkSeq, String isNullable) {
+        return pkSeq!=null || StringUtils.equalsIgnoreCase(isNullable, "YES");
     }
 
     @SneakyThrows
@@ -85,7 +85,7 @@ public class DatabaseStructure {
         while (pks.next()) {
             dsModel = new DatabaseStructureModel();
             dsModel.setColumnName(pks.getString("COLUMN_NAME"));
-            dsModel.setPkSeq(pks.getString("KEY_SEQ"));
+            dsModel.setPkSeq(pks.getInt("KEY_SEQ"));
             pkList.add(dsModel);
         }
         pks.close();
@@ -101,13 +101,9 @@ public class DatabaseStructure {
     }
 
     @SneakyThrows
-    private String chekAndReturnPKSeq(List<DatabaseStructureModel> pkList, final String columnName) {
+    private Integer chekAndReturnPKSeq(List<DatabaseStructureModel> pkList, final String columnName) {
         Optional<DatabaseStructureModel> result = pkList.stream().filter(column -> column.getColumnName().equalsIgnoreCase(columnName)).findFirst();
-        if (result.isPresent()) {
-            return result.get().getPkSeq();
-        } else {
-            return "";
-        }
+        return result.map(DatabaseStructureModel::getPkSeq).orElse(null);
     }
 
     @SneakyThrows
