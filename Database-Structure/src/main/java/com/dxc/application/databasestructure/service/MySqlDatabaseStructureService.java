@@ -60,9 +60,11 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
         CreationHelper createHelper = wb.getCreationHelper();
         Hyperlink link = null;
         int additionalSheet = 1;
+        int sheetIndex = 0;
         for (TableModel table : tableList) {
+            sheetIndex = 2 + additionalSheet;
             Sheet dbSheet = wb.cloneSheet(2);
-            wb.setSheetName(2 + additionalSheet, generateSheetName(table.getPhysicalTableName()));
+            wb.setSheetName(sheetIndex, generateSheetName(table.getPhysicalTableName()));
             dbSheet.getRow(5).getCell(40).setCellValue(table.getPhysicalTableName());
             dbSheet.getRow(6).getCell(7).setCellValue(table.getLogicalTableName());
 
@@ -71,13 +73,13 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
             link.setAddress("'Table List'!M3");
             dbSheet.getRow(6).getCell(7).setHyperlink(link);
 
-            setDbSheetInfo(dbSheet, table.getPhysicalTableName());
+            setDbSheetInfo(dbSheet,sheetIndex, table.getPhysicalTableName());
             additionalSheet++;
         }
     }
 
     @SneakyThrows
-    private void setDbSheetInfo(Sheet dbSheet, String tableName) {
+    private void setDbSheetInfo(Sheet dbSheet,int sheetIndex ,String tableName) {
         List<DatabaseStructureModel> columns = databaseStructure.listColumnMetaData(schemaName, tableName);
         int startRow = 9;
         for (DatabaseStructureModel column : columns) {
@@ -99,10 +101,12 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         } else {
-            for (int ii = 209; ii > startRow; ii--) {
+            for (int ii = 209; ii >= startRow; ii--) {
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         }
+        dbSheet.getWorkbook().setPrintArea(sheetIndex, 0, 102, 0, startRow<17?17:startRow);
+        dbSheet.setDisplayGridlines(false);
     }
 
     @SneakyThrows
@@ -133,9 +137,11 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService {
 
             startRow++;
         }
-        for (int ii = 204; ii > startRow; ii--) {
+        for (int ii = 204; ii >= startRow; ii--) {
             tabListSheet.removeRow(tabListSheet.getRow(ii));
         }
+        wb.setPrintArea(1, 0, 101, 0, startRow);
+        tabListSheet.setDisplayGridlines(false);
     }
 
 

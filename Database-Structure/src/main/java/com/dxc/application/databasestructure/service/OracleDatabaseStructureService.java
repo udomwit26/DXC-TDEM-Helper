@@ -17,7 +17,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.List;
@@ -25,7 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OracleDatabaseStructureService implements DatabaseStructureService{
+public class OracleDatabaseStructureService implements DatabaseStructureService {
     private final OracleDatabaseStructure databaseStructure;
     private final ResourceLoader resourceLoader;
 
@@ -60,6 +59,7 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
             wb.write(fos);
         }
     }
+
     @SneakyThrows
     private void createSequenceSheet(Workbook wb, final List<SequenceModel> sequenceList) {
         int startRow = 9;
@@ -73,9 +73,11 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
             sequenceListSheet.getRow(startRow).getCell(50).setCellValue(model.getCycleFlag());
             startRow++;
         }
-        for(int ii= 214;ii>startRow;ii--){
+        for (int ii = 214; ii >= startRow; ii--) {
             sequenceListSheet.removeRow(sequenceListSheet.getRow(ii));
         }
+        wb.setPrintArea(1, 0, 103, 0, startRow);
+        sequenceListSheet.setDisplayGridlines(false);
     }
 
     @SneakyThrows
@@ -83,9 +85,11 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
         CreationHelper createHelper = wb.getCreationHelper();
         Hyperlink link = null;
         int additionalSheet = 1;
+        int sheetIndex = 0;
         for (TableModel table : tableList) {
+            sheetIndex = 3 + additionalSheet;
             Sheet dbSheet = wb.cloneSheet(3);
-            wb.setSheetName(3 + additionalSheet, generateSheetName(table.getPhysicalTableName()));
+            wb.setSheetName(sheetIndex, generateSheetName(table.getPhysicalTableName()));
             dbSheet.getRow(5).getCell(40).setCellValue(table.getPhysicalTableName());
             dbSheet.getRow(6).getCell(7).setCellValue(table.getLogicalTableName());
 
@@ -94,38 +98,40 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
             link.setAddress("'Table List'!N3");
             dbSheet.getRow(6).getCell(7).setHyperlink(link);
 
-            setDbSheetInfo(dbSheet, table.getPhysicalTableName());
+            setDbSheetInfo(dbSheet,sheetIndex, table.getPhysicalTableName());
             additionalSheet++;
         }
     }
 
     @SneakyThrows
-    private void setDbSheetInfo(Sheet dbSheet, String tableName) {
+    private void setDbSheetInfo(Sheet dbSheet, int sheetIndex, String tableName) {
         List<DatabaseStructureModel> columns = databaseStructure.listColumnMetaData(schemaName, tableName);
         int startRow = 9;
         for (DatabaseStructureModel column : columns) {
             dbSheet.getRow(startRow).getCell(4).setCellValue(column.getColumnName());
             dbSheet.getRow(startRow).getCell(21).setCellValue(column.getLogicalName());
             dbSheet.getRow(startRow).getCell(38).setCellValue(column.getDataType());
-            generateLenValue(dbSheet.getRow(startRow).getCell(44),column.getDataType(),column.getLen());
-            generatePrecValue(dbSheet.getRow(startRow).getCell(48),column.getDataType(),column.getPrec());
-            if(column.getPkSeq()!=null){
+            generateLenValue(dbSheet.getRow(startRow).getCell(44), column.getDataType(), column.getLen());
+            generatePrecValue(dbSheet.getRow(startRow).getCell(48), column.getDataType(), column.getPrec());
+            if (column.getPkSeq() != null) {
                 dbSheet.getRow(startRow).getCell(52).setCellValue(column.getPkSeq());
             }
-            if(StringUtils.isNotBlank(column.getMandatory())){
+            if (StringUtils.isNotBlank(column.getMandatory())) {
                 dbSheet.getRow(startRow).getCell(55).setCellValue(column.getMandatory());
             }
             startRow++;
         }
         if (startRow < 15) {
-            for(int ii= 210;ii>15;ii--){
+            for (int ii = 210; ii > 15; ii--) {
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         } else {
-            for(int ii= 210;ii>startRow;ii--){
+            for (int ii = 210; ii >= startRow; ii--) {
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         }
+        dbSheet.getWorkbook().setPrintArea(sheetIndex, 0, 102, 0, startRow);
+        dbSheet.setDisplayGridlines(false);
     }
 
     @SneakyThrows
@@ -146,20 +152,21 @@ public class OracleDatabaseStructureService implements DatabaseStructureService{
         for (TableModel table : tableList) {
             tabListSheet.getRow(startRow).getCell(4).setCellValue(table.getLogicalTableName());
             tabListSheet.getRow(startRow).getCell(22).setCellValue(table.getPhysicalTableName());
-            tabListSheet.getRow(startRow).getCell(40).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!BP6");
-            tabListSheet.getRow(startRow).getCell(47).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!CF6");
+            tabListSheet.getRow(startRow).getCell(40).setCellFormula(generateSheetName(table.getPhysicalTableName()) + "!BP6");
+            tabListSheet.getRow(startRow).getCell(47).setCellFormula(generateSheetName(table.getPhysicalTableName()) + "!CF6");
 
             link = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
-            link.setAddress(generateSheetName(table.getPhysicalTableName())+"!H7");
+            link.setAddress(generateSheetName(table.getPhysicalTableName()) + "!H7");
             tabListSheet.getRow(startRow).getCell(4).setHyperlink(link);
 
             startRow++;
         }
-        for(int ii= 211;ii>startRow;ii--){
+        for (int ii = 211; ii >= startRow; ii--) {
             tabListSheet.removeRow(tabListSheet.getRow(ii));
         }
+        wb.setPrintArea(2, 0, 104, 0, startRow);
+        tabListSheet.setDisplayGridlines(false);
     }
-
 
 
     @SneakyThrows
