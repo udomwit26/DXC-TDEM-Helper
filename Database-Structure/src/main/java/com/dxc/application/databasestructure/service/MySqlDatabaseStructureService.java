@@ -12,11 +12,9 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.List;
@@ -24,7 +22,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MySqlDatabaseStructureService implements DatabaseStructureService{
+public class MySqlDatabaseStructureService implements DatabaseStructureService {
     private final DatabaseStructure databaseStructure;
 
     @Value("${output.path}")
@@ -88,20 +86,20 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService{
             dbSheet.getRow(startRow).getCell(38).setCellValue(column.getDataType());
             dbSheet.getRow(startRow).getCell(44).setCellValue(column.getLen());
             dbSheet.getRow(startRow).getCell(48).setCellValue(column.getPrec());
-            if(StringUtils.isNotBlank(column.getPkSeq())){
+            if (StringUtils.isNotBlank(column.getPkSeq())) {
                 dbSheet.getRow(startRow).getCell(52).setCellValue(column.getPkSeq());
             }
-            if(StringUtils.isNotBlank(column.getMandatory())){
+            if (StringUtils.isNotBlank(column.getMandatory())) {
                 dbSheet.getRow(startRow).getCell(55).setCellValue(column.getMandatory());
             }
             startRow++;
         }
         if (startRow < 17) {
-            for(int ii= 209;ii>17;ii--){
+            for (int ii = 209; ii > 17; ii--) {
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         } else {
-            for(int ii= 209;ii>startRow;ii--){
+            for (int ii = 209; ii > startRow; ii--) {
                 dbSheet.removeRow(dbSheet.getRow(ii));
             }
         }
@@ -125,22 +123,21 @@ public class MySqlDatabaseStructureService implements DatabaseStructureService{
         for (TableModel table : tableList) {
             tabListSheet.getRow(startRow).getCell(3).setCellValue(table.getLogicalTableName());
             tabListSheet.getRow(startRow).getCell(21).setCellValue(table.getPhysicalTableName());
-            tabListSheet.getRow(startRow).getCell(39).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!BP6");
-            tabListSheet.getRow(startRow).getCell(46).setCellFormula(generateSheetName(table.getPhysicalTableName())+"!CF6");
+            tabListSheet.getRow(startRow).getCell(39).setCellFormula(generateSheetName(table.getPhysicalTableName()) + "!BP6");
+            tabListSheet.getRow(startRow).getCell(46).setCellFormula(generateSheetName(table.getPhysicalTableName()) + "!CF6");
 
             // link
             link = createHelper.createHyperlink(HyperlinkType.DOCUMENT);
-            link.setAddress(generateSheetName(table.getPhysicalTableName())+"!H7");
+            link.setAddress(generateSheetName(table.getPhysicalTableName()) + "!H7");
             tabListSheet.getRow(startRow).getCell(3).setHyperlink(link);
 
             startRow++;
         }
-        for(int ii= 204;ii>startRow;ii--){
+        for (int ii = 204; ii > startRow; ii--) {
             tabListSheet.removeRow(tabListSheet.getRow(ii));
         }
         return tableList;
     }
-
 
 
     @SneakyThrows
