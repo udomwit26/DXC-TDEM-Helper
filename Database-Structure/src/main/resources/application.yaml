@@ -1,11 +1,19 @@
+#spring:
+#  datasource:
+#    url: jdbc:mysql://159.89.210.222:3306/lce?useSSL=false&serverTimezone=UTC
+#    username: lce
+#    password: lce
+#db:
+#  brand: MYSQL
+#  schema: lce
 spring:
   datasource:
-    url: jdbc:mysql://159.89.210.222:3306/lce?useSSL=false&serverTimezone=UTC
-    username: lce
-    password: lce
+    url: jdbc:oracle:thin:@159.89.210.222:8521:XE
+    username: DXCDEMOAPP
+    password: DXCDEMOAPP
 db:
-  brand: MYSQL
-  schema: lce
+  brand: ORACLE
+  schema: DXCDEMOAPP
 output:
   path: /
   fileName: 01_Database_Structure.xlsx
